@@ -14,8 +14,7 @@ RUN apt update \
     && chmod +x /usr/bin/sky_php_agent \
     && apt clean && rm -rf /tmp/skywalking
 
-RUN curl -Ss https://getcomposer.org/installer | php -- --install-dir=/bin --filename=composer \
-    && composer config -g github-oauth.github.com 5aed97388a39045eccd8e5e154381d14654c2215
+RUN curl -Ss https://getcomposer.org/installer | php -- --install-dir=/bin --filename=composer
 
 COPY skywalking.ini /usr/local/etc/php/conf.d/skywalking.ini
 RUN sed -i "s/127.0.0.1:11800/$SKYWALKING_ADDR/g" /usr/local/etc/php/conf.d/skywalking.ini
