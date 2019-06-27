@@ -1,0 +1,53 @@
+version: '3.3'
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.3.2
+    container_name: elasticsearch
+    restart: always
+    ports:
+      - 9201:9200
+      - 9301:9300
+    environment:
+      discovery.type: single-node
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+  oap:
+    image: apache/skywalking-oap-server
+    container_name: oap
+    depends_on:
+      - elasticsearch
+    links:
+      - elasticsearch
+    restart: always
+    ports:
+      - 11800:11800
+      - 12800:12800
+    environment:
+      SW_STORAGE: elasticsearch
+      SW_STORAGE_ES_CLUSTER_NODES: elasticsearch:9200
+  ui:
+    image: apache/skywalking-ui
+    container_name: ui
+    depends_on:
+      - oap
+    links:
+      - oap
+    restart: always
+    ports:
+      - 1181:8080
+    environment:
+      SW_OAP_ADDRESS: oap:12800
+  web:
+    build: 
+      context: ./SkyAPM-PHP
+    container_name: web
+    depends_on:
+      - oap
+    links:
+      - oap
+    ports:
+      - 1180:80
+    environment:
+      SW_COLLECTOR_ADDRESS: oap:11800
