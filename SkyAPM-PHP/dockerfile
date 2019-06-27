@@ -1,0 +1,30 @@
+FROM php:7.2-fpm
+
+COPY sources.list /etc/apt/sources.list
+RUN apt update \
+    && apt install curl libcurl4-gnutls-dev -y \
+		# install php extension
+    && mkdir /tmp/skywalking && cd /tmp/skywalking \
+    && curl -L https://github.com/SkyAPM/SkyAPM-php-sdk/archive/3.0.0.tar.gz -o SkyAPM-php-sdk-3.0.0.tar.gz \
+    && tar xzf SkyAPM-php-sdk-3.0.0.tar.gz \
+		&& cd SkyAPM-php-sdk-3.0.0 \
+		&& phpize && ./configure && make && make install \
+		&& curl -L https://github.com/SkyAPM/SkyAPM-php-sdk/releases/download/3.0.0/report_client_linux -o /usr/bin/report_client \
+    && chmod +x /usr/bin/report_client \
+    && apt clean && rm -rf /tmp/skywalking
+
+RUN curl -Ss https://getcomposer.org/installer | php -- --install-dir=/bin --filename=composer \
+    && composer config -g github-oauth.github.com 5aed97388a39045eccd8e5e154381d14654c2215
+
+ARG SKYWALKING_ADDR
+COPY skywalking.ini /usr/local/etc/php/conf.d/skywalking.ini
+RUN sed -i "s/127.0.0.1:11800/$SKYWALKING_ADDR/g" /usr/local/etc/php/conf.d/skywalking.ini
+
+CMD report_client $SKYWALKING_ADDR /tmp & php-fpm -D
+
+WORKDIR /var/www/html/project
+
+RUN cd ../ && composer create-project laravel/laravel project \
+    && php artisan key:generate
+
+CMD report_client $SKYWALKING_ADDR & php artisan serve --host 0.0.0.0 --port 80
