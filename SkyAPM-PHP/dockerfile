@@ -3,14 +3,14 @@ FROM php:7.2-fpm
 COPY sources.list /etc/apt/sources.list
 RUN apt update \
     && apt install curl libcurl4-gnutls-dev git zlib1g-dev  -y \
-    && docker-php-ext-install zip \
-        # install php extension
+    && docker-php-ext-install zip pdo_mysql \
+    # install php extension
     && mkdir /tmp/skywalking && cd /tmp/skywalking \
-    && curl -L https://github.com/SkyAPM/SkyAPM-php-sdk/archive/3.0.0.tar.gz -o SkyAPM-php-sdk-3.0.0.tar.gz \
-    && tar xzf SkyAPM-php-sdk-3.0.0.tar.gz \
-        && cd SkyAPM-php-sdk-3.0.0 \
+    && curl -L https://github.com/SkyAPM/SkyAPM-php-sdk/archive/3.0.1.tar.gz -o SkyAPM-php-sdk-3.0.1.tar.gz \
+    && tar xzf SkyAPM-php-sdk-3.0.1.tar.gz \
+        && cd SkyAPM-php-sdk-3.0.1 \
         && phpize && ./configure && make && make install \
-        && curl -L https://github.com/SkyAPM/SkyAPM-php-sdk/releases/download/3.0.0/sky_php_agent_linux_x64 -o /usr/bin/sky_php_agent \
+        && curl -L https://github.com/SkyAPM/SkyAPM-php-sdk/releases/download/3.0.1/sky_php_agent_linux_x64 -o /usr/bin/sky_php_agent \
     && chmod +x /usr/bin/sky_php_agent \
     && apt clean && rm -rf /tmp/skywalking
 
